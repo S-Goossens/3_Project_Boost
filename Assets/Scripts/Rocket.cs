@@ -7,13 +7,14 @@ public class Rocket : MonoBehaviour
 {
     //properties
     Rigidbody rb;
-    public int rcsThrust;
+    AudioSource audioSrc;
+    //public int rcsThrust;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        
+        audioSrc = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -29,12 +30,8 @@ public class Rocket : MonoBehaviour
     private void ProcessInput()
     {
         //thrust
-        if(Input.GetKey(KeyCode.Space))
-        {
-            print("Space pressed");
-            rb.AddRelativeForce(Vector3.up);
-        } 
-        
+        HandleThrust();
+
         //rotation
         if (Input.GetKey(KeyCode.A))
         {
@@ -44,6 +41,22 @@ public class Rocket : MonoBehaviour
         {
             print("D pressed");
             transform.Rotate(-Vector3.forward);
+        }
+    }
+
+    private void HandleThrust()
+    {
+        if (Input.GetKey(KeyCode.Space))
+        {
+            rb.AddRelativeForce(Vector3.up);
+            if (!audioSrc.isPlaying)    // so the sound doesn't layer
+            {
+                audioSrc.Play();
+            }
+        }
+        else
+        {
+            audioSrc.Stop();
         }
     }
 }

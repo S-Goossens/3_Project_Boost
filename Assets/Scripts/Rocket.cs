@@ -8,7 +8,8 @@ public class Rocket : MonoBehaviour
     //properties
     Rigidbody rb;
     AudioSource audioSrc;
-    //public int rcsThrust;
+    [SerializeField] float mainThrust = 100f;
+    [SerializeField] float rcsThrust = 100f;
 
     // Start is called before the first frame update
     void Start()
@@ -23,32 +24,40 @@ public class Rocket : MonoBehaviour
         ProcessInput();
     }
 
+    void OnCollisionEnter(Collision collision)
+    {
+        switch(collision.gameObject.tag)
+        {
+            case "Friendly":
+                // do nothing
+                print("OK");    //todo remove
+                break;
+            case "Fuel":
+                print("Fuel");  //todo remove
+                // add fuel
+                break;
+            default:
+                print("Dead"); //todo remove
+                // kill rocket
+                break;
+        }
+    }
+
     /**
      * Handles key presses.
      * @author Sidney Goossens
      */
     private void ProcessInput()
     {
-        //thrust
-        HandleThrust();
-
-        //rotation
-        if (Input.GetKey(KeyCode.A))
-        {
-            transform.Rotate(Vector3.forward);
-        }
-        else if (Input.GetKey(KeyCode.D))
-        {
-            print("D pressed");
-            transform.Rotate(-Vector3.forward);
-        }
+        Thrust();
+        Rotate();
     }
 
-    private void HandleThrust()
+    private void Thrust()
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            rb.AddRelativeForce(Vector3.up);
+            rb.AddRelativeForce(Vector3.up * mainThrust);
             if (!audioSrc.isPlaying)    // so the sound doesn't layer
             {
                 audioSrc.Play();
@@ -58,5 +67,23 @@ public class Rocket : MonoBehaviour
         {
             audioSrc.Stop();
         }
+    }
+
+    private void Rotate()
+    {
+        rb.freezeRotation = true;   // take manual control of rotation
+
+        float rotationThisFrame = rcsThrust * Time.deltaTime;
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            transform.Rotate(Vector3.forward * rotationThisFrame);
+        }
+        else if (Input.GetKey(KeyCode.D))
+        {
+            transform.Rotate(-Vector3.forward * rotationThisFrame);
+        }
+
+        rb.freezeRotation = false;  // resume physics control of rotation
     }
 }

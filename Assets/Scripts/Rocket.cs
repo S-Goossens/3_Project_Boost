@@ -2,12 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Rocket : MonoBehaviour
 {
     //properties
     Rigidbody rb;
     AudioSource audioSrc;
+
+    enum State { Alive, Dying, Transcending }
+    State state = State.Alive;
+
     [SerializeField] float mainThrust = 100f;
     [SerializeField] float rcsThrust = 100f;
 
@@ -26,21 +31,35 @@ public class Rocket : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
+        if (state != State.Alive) { return; } // ignore collisions when dead
+
         switch(collision.gameObject.tag)
         {
             case "Friendly":
                 // do nothing
-                print("OK");    //todo remove
                 break;
-            case "Fuel":
-                print("Fuel");  //todo remove
-                // add fuel
+            case "Finish":
+                state = State.Transcending;
+                Invoke("LoadNextLevel", 1f);    // parameterise time
                 break;
             default:
-                print("Dead"); //todo remove
                 // kill rocket
+                print("hit something deadly");
+                state = State.Dying;
+                Invoke("LoadFirstLevel", 1f);    // parameterise time
                 break;
         }
+    }
+
+    private void LoadFirstLevel()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    private void LoadNextLevel()
+    {
+
+        SceneManager.LoadScene(1);
     }
 
     /**
@@ -49,8 +68,12 @@ public class Rocket : MonoBehaviour
      */
     private void ProcessInput()
     {
-        Thrust();
-        Rotate();
+        // todo somewhere stop sound on death
+        if (state == State.Alive)
+        {
+            Thrust();
+            Rotate();
+        }
     }
 
     private void Thrust()

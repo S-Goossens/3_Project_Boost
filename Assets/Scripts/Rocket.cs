@@ -15,6 +15,9 @@ public class Rocket : MonoBehaviour
 
     [SerializeField] float mainThrust = 100f;
     [SerializeField] float rcsThrust = 100f;
+    [SerializeField] AudioClip mainEngine;
+    [SerializeField] AudioClip death;
+    [SerializeField] AudioClip success;
 
     // Start is called before the first frame update
     void Start()
@@ -39,16 +42,28 @@ public class Rocket : MonoBehaviour
                 // do nothing
                 break;
             case "Finish":
-                state = State.Transcending;
-                Invoke("LoadNextLevel", 1f);    // parameterise time
+                StartSuccessSequence();
                 break;
             default:
-                // kill rocket
-                print("hit something deadly");
-                state = State.Dying;
-                Invoke("LoadFirstLevel", 1f);    // parameterise time
+                StartDeathSequence();
                 break;
         }
+    }
+
+    private void StartSuccessSequence()
+    {
+        state = State.Transcending;
+        audioSrc.Stop();
+        audioSrc.PlayOneShot(success);
+        Invoke("LoadNextLevel", 1f);    // parameterise time
+    }
+
+    private void StartDeathSequence()
+    {
+        state = State.Dying;
+        audioSrc.Stop();
+        audioSrc.PlayOneShot(death);
+        Invoke("LoadFirstLevel", 1f);    // parameterise time
     }
 
     private void LoadFirstLevel()
@@ -62,33 +77,34 @@ public class Rocket : MonoBehaviour
         SceneManager.LoadScene(1);
     }
 
-    /**
-     * Handles key presses.
-     * @author Sidney Goossens
-     */
     private void ProcessInput()
     {
         // todo somewhere stop sound on death
         if (state == State.Alive)
         {
-            Thrust();
+            RespondToThrustInput();
             Rotate();
         }
     }
 
-    private void Thrust()
+    private void RespondToThrustInput()
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            rb.AddRelativeForce(Vector3.up * mainThrust);
-            if (!audioSrc.isPlaying)    // so the sound doesn't layer
-            {
-                audioSrc.Play();
-            }
+            ApplyThrust();
         }
         else
         {
             audioSrc.Stop();
+        }
+    }
+
+    private void ApplyThrust()
+    {
+        rb.AddRelativeForce(Vector3.up * mainThrust);
+        if (!audioSrc.isPlaying)    // so the sound doesn't layer
+        {
+            audioSrc.PlayOneShot(mainEngine);
         }
     }
 
